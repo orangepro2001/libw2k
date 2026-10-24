@@ -1,7 +1,7 @@
 # libw2k: Windows 2000 controls in C
 
 Owner-drawn Windows 2000 look (tokens of the `win2000-style` skill) for a plain Win32 or any other host. C99, no dependencies except the backends.
-Extracted from AFVI TOOLS with no change of look: the 14 application snapshots are unchanged.
+Extracted from the AFVI TOOLS application (`git@github.com:orangepro2001/AFVI_TOOL.git`), which uses it as a git submodule, with no change of look.
 
 | Layer | Files | Contains |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Extracted from AFVI TOOLS with no change of look: the 14 application snapshots a
 | backend Windows | `w2k_gdi.h/.c` | GDI font and `w2k_gfx` on an HDC. The only file that includes `<windows.h>` |
 | backend Linux | `w2k_png.h/.c`, `third_party/stb_truetype.h` | software canvas, PNG writer/reader (zlib), tolerant snapshot comparison |
 
-Layers 0 to 2 never include `<windows.h>` (checked by `grep windows.h libw2k/*`): that is what lets the same code render on Linux.
+Layers 0 to 2 never include `<windows.h>` (checked by `grep -lE '#include *<windows.h>' *.[ch]`: only `w2k_gdi.*`): that is what lets the same code render on Linux.
 
 ## Using it
 
@@ -28,8 +28,8 @@ hit-region list the controls fill while painting (later regions win, so modal la
 
 ## Tests and demo
 
-`libw2k/tests/run.sh` builds `demo/demo.c` (a gallery of every control, no application code, no Go) and runs the logic checks (hit list, list scrolling, scaling)
-plus a snapshot comparison with `libw2k/tests/snapshots` (14 px, 14 px with menu and drop list open, 18 px). `--update` rewrites the baselines after a deliberate
+`tests/run.sh` builds `demo/demo.c` (a gallery of every control, no application code, no Go) and runs the logic checks (hit list, list scrolling, scaling)
+plus a snapshot comparison with `tests/snapshots` (14 px, 14 px with menu and drop list open, 18 px). `--update` rewrites the baselines after a deliberate
 look change. Needs gcc, zlib headers and `fonts-dejavu-core`. Tahoma is not on Linux, so the images use DejaVu Sans.
 
 ## Not extracted (stays in `gui/app.c`)
@@ -37,5 +37,15 @@ look change. Needs gcc, zlib headers and `fonts-dejavu-core`. Tahoma is not on L
 - Layout and flow of the application's screens, the plan/job dialogs' contents, the Excel entry, all state and `host_t` (native EDIT fields, timers, core calls).
 - Keyboard handling and focus order: it is bound to the application's actions; the library only exposes hit regions.
 - Text editing (the app uses native EDIT children for IME); a library edit control would need its own caret, selection and IME code.
-- Dark theme, DPI scaling beyond `w2k_font_px`, tree, grid editing, date picker: not needed yet (see `docs/COMPONENT_LIBRARY.md`).
-- Licence and a separate repository: undecided; `third_party/stb_truetype.h` is public domain / MIT (Linux backend only).
+- Dark theme, DPI scaling beyond `w2k_font_px`, tree, grid editing, date picker: not needed yet .
+- Licence: undecided (no LICENSE file yet, so nobody else may reuse it until you choose one); `third_party/stb_truetype.h` is public domain / MIT (Linux backend only).
+
+## Using it from another project
+
+As a git submodule at `libw2k/` (the AFVI TOOLS way), then compile `w2k_draw.c w2k_ctl.c` with your host and one backend (`w2k_gdi.c` on Windows,
+`w2k_png.c` + `-lz` on Linux for tests and previews) with `-Ilibw2k`. Keep your application code free of `<windows.h>` behind a host interface so the
+Linux backend can run it too (that is how AFVI TOOLS tests its whole UI on Linux).
+
+## Status
+
+Written against one application. API is not frozen; new controls are added when an application needs them, each with a gallery state and a snapshot.

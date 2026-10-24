@@ -1,0 +1,22 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain and fonts
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc zlib1g-dev fonts-dejavu-core
+      - name: tests (logic checks + gallery snapshots)
+        run: tests/run.sh
+      - name: no windows.h outside the GDI backend
+        run: "! grep -lE '#include *<windows.h>' *.c *.h | grep -v '^w2k_gdi\\.'"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: snapshot-output
+          path: build/shots/*.png
+          if-no-files-found: ignore
